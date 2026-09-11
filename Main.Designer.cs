@@ -67,7 +67,7 @@
             // loadNewToolStripMenuItem
             // 
             loadNewToolStripMenuItem.Name = "loadNewToolStripMenuItem";
-            loadNewToolStripMenuItem.Size = new Size(180, 22);
+            loadNewToolStripMenuItem.Size = new Size(127, 22);
             loadNewToolStripMenuItem.Text = "Load new";
             loadNewToolStripMenuItem.Click += loadNewToolStripMenuItem_Click;
             // 
@@ -75,14 +75,14 @@
             // 
             forceAnalysisToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { analyzeNowToolStripMenuItem, securityToolStripMenuItem });
             forceAnalysisToolStripMenuItem.Name = "forceAnalysisToolStripMenuItem";
-            forceAnalysisToolStripMenuItem.Size = new Size(180, 22);
+            forceAnalysisToolStripMenuItem.Size = new Size(127, 22);
             forceAnalysisToolStripMenuItem.Text = "Advanced";
             forceAnalysisToolStripMenuItem.Click += forceAnalysisToolStripMenuItem_Click;
             // 
             // analyzeNowToolStripMenuItem
             // 
             analyzeNowToolStripMenuItem.Name = "analyzeNowToolStripMenuItem";
-            analyzeNowToolStripMenuItem.Size = new Size(180, 22);
+            analyzeNowToolStripMenuItem.Size = new Size(145, 22);
             analyzeNowToolStripMenuItem.Text = "Force analyze";
             analyzeNowToolStripMenuItem.Click += analyzeNowToolStripMenuItem_Click;
             // 
@@ -90,7 +90,7 @@
             // 
             securityToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { bypassDefenderUNSAFEToolStripMenuItem });
             securityToolStripMenuItem.Name = "securityToolStripMenuItem";
-            securityToolStripMenuItem.Size = new Size(180, 22);
+            securityToolStripMenuItem.Size = new Size(145, 22);
             securityToolStripMenuItem.Text = "Security";
             // 
             // bypassDefenderUNSAFEToolStripMenuItem
@@ -148,7 +148,6 @@
             ShowIcon = false;
             StartPosition = FormStartPosition.CenterScreen;
             Text = "ProCheck";
-            WindowState = FormWindowState.Minimized;
             Load += Form1_Load;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();

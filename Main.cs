@@ -1,4 +1,6 @@
 using System.Diagnostics.Eventing.Reader;
+using System.Drawing.Text;
+using System.Windows.Forms.VisualStyles;
 using System.Xml;
 using static ProCheck.ValidateFileSafety;
 
@@ -11,7 +13,18 @@ namespace ProCheck
         bool hasAttemptedToLoadOnce = false;
         bool bypassDefender = false;
 
+        private MonitorScreen? monitorScreen;
 
+        // Main.cs
+        private void GoToMonitorScreen(string filePath)
+        {
+            var newScreen = new MonitorScreen(filePath, this);
+            newScreen.Show();
+            this.Hide();
+            InitUiState();
+            filePath = string.Empty;
+            hasAttemptedToLoadOnce = false;
+        }
         private void InitUiState()
         {
             fileLoadProgressBar.Visible = false;
@@ -34,6 +47,9 @@ namespace ProCheck
             InitializeComponent();
             InitUiState();
             GenericDataReload();
+
+            this.TopMost = true;
+            this.TopMost = false;
         }
 
         private void GenericDataReload()
@@ -76,6 +92,8 @@ namespace ProCheck
             statusLabel.Text = "One second!";
             fileLoadProgressBar.Value = 10;
             fileLoadProgressBar.Maximum = 100;
+
+            GoToMonitorScreen(filePath);
 
         }
 
