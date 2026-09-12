@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="PeNet" Version="6.1.2" />
     <PackageReference Include="SharpDivert" Version="1.1.0" />
+    <PackageReference Include="System.Management" Version="10.0.12" />
     <PackageReference Include="Titanium.Web.Proxy" Version="7.0.6" />
   </ItemGroup>
 

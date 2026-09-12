@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Management;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace ProCheck
 {
@@ -11,78 +10,202 @@ namespace ProCheck
     {
         private readonly HashSet<int> watchedPids = new();
         private readonly object lockObj = new();
-        private System.Threading.Timer? pollTimer;
+
+        private ManagementEventWatcher? startWatcher;
+        private ManagementEventWatcher? stopWatcher;
 
         public PidTreeTracker(int rootPid)
         {
-            lock (lockObj) watchedPids.Add(rootPid);
+            lock (lockObj)
+            {
+                watchedPids.Add(rootPid);
+
+                // Important:
+                // Capture descendants that may already exist before
+                // the WMI start watcher was started.
+                AddExistingDescendants(rootPid);
+            }
         }
 
         public void Start()
         {
-            pollTimer = new System.Threading.Timer(_ => PollForChildren(), null, 0, 500);
+            try
+            {
+                startWatcher = new ManagementEventWatcher(
+                    new WqlEventQuery(
+                        "SELECT * FROM Win32_ProcessStartTrace"));
+
+                startWatcher.EventArrived += OnProcessStarted;
+                startWatcher.Start();
+
+                stopWatcher = new ManagementEventWatcher(
+                    new WqlEventQuery(
+                        "SELECT * FROM Win32_ProcessStopTrace"));
+
+                stopWatcher.EventArrived += OnProcessStopped;
+                stopWatcher.Start();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(
+                    $"PidTreeTracker.Start failed: {ex}");
+            }
         }
 
         public void Stop()
         {
-            pollTimer?.Dispose();
-            pollTimer = null;
+            try
+            {
+                startWatcher?.Stop();
+                startWatcher?.Dispose();
+            }
+            catch { }
+
+            try
+            {
+                stopWatcher?.Stop();
+                stopWatcher?.Dispose();
+            }
+            catch { }
+
+            startWatcher = null;
+            stopWatcher = null;
         }
 
         public bool IsTracked(int pid)
         {
-            lock (lockObj) return watchedPids.Contains(pid);
+            lock (lockObj)
+            {
+                return watchedPids.Contains(pid);
+            }
         }
 
-        private void PollForChildren()
+        public bool HasRunningProcess()
+        {
+            int[] pids;
+
+            lock (lockObj)
+            {
+                pids = watchedPids.ToArray();
+            }
+
+            foreach (int pid in pids)
+            {
+                try
+                {
+                    using Process process = Process.GetProcessById(pid);
+
+                    if (!process.HasExited)
+                        return true;
+                }
+                catch
+                {
+                    // Process disappeared between enumeration and lookup.
+                }
+            }
+
+            return false;
+        }
+
+        public IReadOnlyCollection<int> GetTrackedPids()
+        {
+            lock (lockObj)
+            {
+                return watchedPids.ToArray();
+            }
+        }
+
+        private void AddExistingDescendants(int rootPid)
         {
             try
             {
-                var processes = Process.GetProcesses();
+                bool changed;
 
-                List<int> currentlyWatched;
-                lock (lockObj) currentlyWatched = watchedPids.ToList();
-
-                foreach (var proc in processes)
+                do
                 {
-                    try
+                    changed = false;
+
+                    using ManagementObjectSearcher searcher =
+                        new ManagementObjectSearcher(
+                            "SELECT ProcessId, ParentProcessId " +
+                            "FROM Win32_Process");
+
+                    foreach (ManagementObject process in searcher.Get())
                     {
-                        int parentPid = GetParentPid(proc.Id);
-                        if (currentlyWatched.Contains(parentPid))
+                        try
                         {
-                            lock (lockObj) watchedPids.Add(proc.Id);
+                            int pid = Convert.ToInt32(
+                                process["ProcessId"]);
+
+                            int parentPid = Convert.ToInt32(
+                                process["ParentProcessId"]);
+
+                            if (watchedPids.Contains(parentPid) &&
+                                watchedPids.Add(pid))
+                            {
+                                changed = true;
+                            }
+                        }
+                        catch
+                        {
+                            // Ignore processes that disappear while
+                            // enumerating the WMI result.
                         }
                     }
-                    catch { }
+                }
+                while (changed);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(
+                    $"AddExistingDescendants failed: {ex}");
+            }
+        }
+
+        private void OnProcessStarted(
+            object sender,
+            EventArrivedEventArgs e)
+        {
+            try
+            {
+                int newPid = Convert.ToInt32(
+                    e.NewEvent.Properties["ProcessID"].Value);
+
+                int parentPid = Convert.ToInt32(
+                    e.NewEvent.Properties["ParentProcessID"].Value);
+
+                lock (lockObj)
+                {
+                    if (watchedPids.Contains(parentPid))
+                    {
+                        watchedPids.Add(newPid);
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(
+                    $"OnProcessStarted failed: {ex}");
+            }
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct PROCESS_BASIC_INFORMATION
+        private void OnProcessStopped(
+            object sender,
+            EventArrivedEventArgs e)
         {
-            public IntPtr Reserved1;
-            public IntPtr PebBaseAddress;
-            public IntPtr Reserved2_0;
-            public IntPtr Reserved2_1;
-            public IntPtr UniqueProcessId;
-            public IntPtr InheritedFromUniqueProcessId;
-        }
+            try
+            {
+                int pid = Convert.ToInt32(
+                    e.NewEvent.Properties["ProcessID"].Value);
 
-        [DllImport("ntdll.dll")]
-        private static extern int NtQueryInformationProcess(
-            IntPtr processHandle, int processInformationClass,
-            ref PROCESS_BASIC_INFORMATION processInformation,
-            int processInformationLength, out int returnLength);
-
-        private static int GetParentPid(int pid)
-        {
-            using var process = Process.GetProcessById(pid);
-            var pbi = new PROCESS_BASIC_INFORMATION();
-            int status = NtQueryInformationProcess(process.Handle, 0, ref pbi, Marshal.SizeOf(pbi), out _);
-            if (status != 0) return -1;
-            return pbi.InheritedFromUniqueProcessId.ToInt32();
+                lock (lockObj)
+                {
+                    watchedPids.Remove(pid);
+                }
+            }
+            catch
+            {
+            }
         }
     }
 }
