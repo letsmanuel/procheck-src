@@ -3,6 +3,7 @@ using System.Drawing.Text;
 using System.Windows.Forms.VisualStyles;
 using System.Xml;
 using static ProCheck.ValidateFileSafety;
+using static ProCheck.HttpsCapture;
 
 namespace ProCheck
 {
@@ -141,6 +142,12 @@ namespace ProCheck
         private void analyzeNowToolStripMenuItem_Click(object sender, EventArgs e)
         {
             processFilePathBeeingSet(sender, e);
+        }
+
+        private void resetProxyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            HttpsCapture.ForceResetSystemProxy();
+            MessageBox.Show("Proxy settings have been reset to default.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

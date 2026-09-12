@@ -39,6 +39,8 @@
             fileLoadProgressBar = new ProgressBar();
             statusLabel = new Label();
             copyright = new Label();
+            networkingToolStripMenuItem = new ToolStripMenuItem();
+            resetProxyToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -67,22 +69,22 @@
             // loadNewToolStripMenuItem
             // 
             loadNewToolStripMenuItem.Name = "loadNewToolStripMenuItem";
-            loadNewToolStripMenuItem.Size = new Size(127, 22);
+            loadNewToolStripMenuItem.Size = new Size(180, 22);
             loadNewToolStripMenuItem.Text = "Load new";
             loadNewToolStripMenuItem.Click += loadNewToolStripMenuItem_Click;
             // 
             // forceAnalysisToolStripMenuItem
             // 
-            forceAnalysisToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { analyzeNowToolStripMenuItem, securityToolStripMenuItem });
+            forceAnalysisToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { analyzeNowToolStripMenuItem, securityToolStripMenuItem, networkingToolStripMenuItem });
             forceAnalysisToolStripMenuItem.Name = "forceAnalysisToolStripMenuItem";
-            forceAnalysisToolStripMenuItem.Size = new Size(127, 22);
+            forceAnalysisToolStripMenuItem.Size = new Size(180, 22);
             forceAnalysisToolStripMenuItem.Text = "Advanced";
             forceAnalysisToolStripMenuItem.Click += forceAnalysisToolStripMenuItem_Click;
             // 
             // analyzeNowToolStripMenuItem
             // 
             analyzeNowToolStripMenuItem.Name = "analyzeNowToolStripMenuItem";
-            analyzeNowToolStripMenuItem.Size = new Size(145, 22);
+            analyzeNowToolStripMenuItem.Size = new Size(180, 22);
             analyzeNowToolStripMenuItem.Text = "Force analyze";
             analyzeNowToolStripMenuItem.Click += analyzeNowToolStripMenuItem_Click;
             // 
@@ -90,7 +92,7 @@
             // 
             securityToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { bypassDefenderUNSAFEToolStripMenuItem });
             securityToolStripMenuItem.Name = "securityToolStripMenuItem";
-            securityToolStripMenuItem.Size = new Size(145, 22);
+            securityToolStripMenuItem.Size = new Size(180, 22);
             securityToolStripMenuItem.Text = "Security";
             // 
             // bypassDefenderUNSAFEToolStripMenuItem
@@ -131,6 +133,20 @@
             copyright.TabIndex = 3;
             copyright.Text = "© Paul Stiassny 2026";
             // 
+            // networkingToolStripMenuItem
+            // 
+            networkingToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { resetProxyToolStripMenuItem });
+            networkingToolStripMenuItem.Name = "networkingToolStripMenuItem";
+            networkingToolStripMenuItem.Size = new Size(180, 22);
+            networkingToolStripMenuItem.Text = "Networking";
+            // 
+            // resetProxyToolStripMenuItem
+            // 
+            resetProxyToolStripMenuItem.Name = "resetProxyToolStripMenuItem";
+            resetProxyToolStripMenuItem.Size = new Size(180, 22);
+            resetProxyToolStripMenuItem.Text = "Reset Proxy";
+            resetProxyToolStripMenuItem.Click += resetProxyToolStripMenuItem_Click;
+            // 
             // Main
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -168,5 +184,7 @@
         private ToolStripMenuItem analyzeNowToolStripMenuItem;
         private ToolStripMenuItem securityToolStripMenuItem;
         private ToolStripMenuItem bypassDefenderUNSAFEToolStripMenuItem;
+        private ToolStripMenuItem networkingToolStripMenuItem;
+        private ToolStripMenuItem resetProxyToolStripMenuItem;
     }
 }
