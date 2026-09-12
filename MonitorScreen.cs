@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using static ProCheck.Logger;
 
 namespace ProCheck
 {
@@ -26,9 +27,6 @@ namespace ProCheck
         private PidTreeTracker? pidTracker;
         private readonly Dictionary<NetworkRequestData, network_request> activeRequests = new();
 
-        private static readonly string LogFilePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "ProCheck", "debug.log");
 
         public MonitorScreen(string filePath, Main mainForm)
         {
@@ -40,26 +38,6 @@ namespace ProCheck
             Log($"MonitorScreen constructed. Instance hash: {this.GetHashCode()}, filePath: {filePath}");
         }
 
-        // Writes a timestamped line to both Debug Output and a persistent log file.
-        private static void Log(string message)
-        {
-            string line = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
-            Debug.WriteLine(line);
-
-            try
-            {
-                Directory.CreateDirectory(
-                    Path.GetDirectoryName(LogFilePath)!);
-
-                File.AppendAllText(
-                    LogFilePath,
-                    line + Environment.NewLine);
-            }
-            catch
-            {
-                // Logging must never crash the app.
-            }
-        }
 
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern int NtSuspendProcess(
